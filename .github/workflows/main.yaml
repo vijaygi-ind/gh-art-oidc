@@ -1,0 +1,72 @@
+name: OIDC Integration with Artifactory (migration2)
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  JF_URL: ${{ vars.ARTIFACTORY_URL }}
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+    steps:
+      # Step 1: Check out the repository
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Step 2: Set up Node.js environment
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+
+      # Step 3: Set up JFrog CLI with OIDC
+      - name: Set up JFrog CLI
+        uses: jfrog/setup-jfrog-cli@v4
+        with:
+          oidc-provider-name: vijaygi-eqb-oidc
+          # Add oidc-audience if your Artifactory OIDC integration requires it
+
+      # Step 4: Configure npm to use JFrog Artifactory
+      - name: Configure npm registry
+        run: |
+          jf npm-config \
+            --repo-resolve=vgi-eqb-npm \
+            --repo-deploy=vgi-eqb-npm
+
+      # Step 5: Install dependencies
+      - name: Install dependencies
+        run: jf npm install
+
+      # Step 6: Build the project
+      - name: Build the project
+        run: jf npm run build
+
+      # Step 7: Upload build artifacts to GitHub
+      - name: Upload build artifacts to GitHub
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-artifacts
+          path: dist/**/*
+
+      # Step 8: Upload build output to Artifactory
+      - name: Upload build output to Artifactory
+        run: |
+          jf npm publish \
+            --build-name=vgi-eqb-npm-build \
+            --build-number=${{ github.run_number }}
+
+      # Step 9: Publish Build Info
+      - name: Publish Build Info
+        run: |
+          jf rt build-publish vgi-eqb-npm-build ${{ github.run_number }}
