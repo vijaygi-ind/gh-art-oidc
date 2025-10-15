@@ -1,0 +1,1 @@
+# npm-artifactory-oidc
