@@ -1,0 +1,34 @@
+name: "Frogbot Scan Repository"
+on:
+  workflow_dispatch:
+  schedule:
+    # The repository will be scanned once a day at 00:00 GMT.
+    - cron: "0 0 * * *"
+  push:
+    branches:
+      - main
+permissions:
+  pull-requests: write
+  contents: write
+  security-events: write
+  # [Mandatory if using OIDC authentication protocol instead of JF_ACCESS_TOKEN]
+  # id-token: write
+
+jobs:
+  scan-repository:
+    runs-on: ubuntu-latest
+    name: Scan Repository (${{ matrix.branch }} branch)
+    strategy:
+      matrix:
+        branch: [ "main" ]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ matrix.branch }}
+
+      - uses: jfrog/frogbot@v3
+        env:
+          JF_URL: ${{ secrets.JF_URL }}
+        with:
+          oidc-provider-name: vijaygi-eqb-oidc
+          # Add oidc-audience if your Artifactory OIDC integration requires it
