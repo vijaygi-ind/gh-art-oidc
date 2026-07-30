@@ -32,5 +32,5 @@ jobs:
 
       - uses: jfrog/frogbot@v3
         with:
-          oidc-provider-name: vijaygi-eqb-oidc@github
+          oidc-provider-name: vijaygi-eqb-oidc
           # Add oidc-audience if your Artifactory OIDC integration requires it
