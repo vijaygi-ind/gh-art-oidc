@@ -16,6 +16,7 @@ permissions:
 
 env:
   JF_URL: ${{ vars.ARTIFACTORY_URL }}
+  JF_GIT_TOKEN: ${{ secrets.GIT_TOKEN }}
 
 jobs:
   scan-repository:
